@@ -59,9 +59,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9C997E2413DB4F529E2FDE4F7707FEC4 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_77F30B8EC37646EB96662F3F722BC3E4 }}
 
-      - name: Deploy to Azure Web App
+      - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
         with:
-          app-name: hearme-backend-api
-          slot-name: Production
-          package: backend
+         app-name: 'hearme-backend-api'
+         slot-name: 'Production'
+         package: ./backend
+
