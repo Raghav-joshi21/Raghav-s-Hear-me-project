@@ -44,12 +44,13 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_82EA4F24FDEC48D69F144163D9A387A6 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9C997E2413DB4F529E2FDE4F7707FEC4 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_77F30B8EC37646EB96662F3F722BC3E4 }}
 
       - name: Deploy backend to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: hearme-backend-api
           package: backend
+
