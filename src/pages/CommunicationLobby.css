@@ -1,0 +1,320 @@
+.communication-lobby {
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.lobby-container {
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.lobby-header {
+  margin-bottom: 48px;
+}
+
+.lobby-header h1 {
+  font-size: 48px;
+  font-weight: 400;
+  color: #202124;
+  margin: 0 0 16px 0;
+  line-height: 1.2;
+}
+
+.lobby-header p {
+  font-size: 18px;
+  color: #5f6368;
+  margin: 0;
+}
+
+.lobby-actions {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 48px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.action-section {
+  flex: 1;
+  min-width: 280px;
+}
+
+.action-section h2 {
+  font-size: 16px;
+  font-weight: 500;
+  color: #202124;
+  margin: 0 0 16px 0;
+  text-align: left;
+}
+
+.room-creation {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-generate,
+.btn-create-room {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #1a73e8;
+  color: white;
+}
+
+.btn-generate:hover:not(:disabled),
+.btn-create-room:hover:not(:disabled) {
+  background: #1765cc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.btn-generate:disabled,
+.btn-create-room:disabled {
+  background: #dadce0;
+  color: #80868b;
+  cursor: not-allowed;
+}
+
+.room-code-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dadce0;
+}
+
+.room-code {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 500;
+  color: #202124;
+  letter-spacing: 2px;
+  font-family: 'Courier New', monospace;
+}
+
+.btn-copy {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.btn-copy:hover {
+  background: #e8eaed;
+}
+
+.room-created-success {
+  padding: 12px 16px;
+  background: #e8f5e9;
+  border: 1px solid #81c784;
+  border-radius: 8px;
+  color: #2e7d32;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.btn-copy-room {
+  padding: 6px 12px;
+  background: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-copy-room:hover {
+  background: #1765cc;
+}
+
+.join-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.room-code-input {
+  padding: 12px 16px;
+  border: 1px solid #dadce0;
+  border-radius: 24px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+  text-align: center;
+  letter-spacing: 2px;
+  font-family: 'Courier New', monospace;
+}
+
+.room-code-input:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+}
+
+.participant-name-section {
+  margin: 48px 0;
+  padding: 32px;
+  background: #f8f9fa;
+  border-radius: 16px;
+  border: 1px solid #dadce0;
+}
+
+.participant-name-section h3 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #202124;
+  margin: 0 0 24px 0;
+}
+
+.name-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 14px 18px;
+  font-size: 16px;
+  border: 2px solid #dadce0;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.name-input:focus {
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.1);
+}
+
+.name-input::placeholder {
+  color: #9aa0a6;
+}
+
+.participant-type-selection {
+  margin: 48px 0;
+  padding: 32px;
+  background: #f8f9fa;
+  border-radius: 16px;
+  border: 1px solid #dadce0;
+}
+
+.participant-type-selection h3 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #202124;
+  margin: 0 0 24px 0;
+}
+
+.type-options {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.type-option {
+  flex: 1;
+  min-width: 200px;
+  padding: 24px;
+  background: white;
+  border: 2px solid #dadce0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.type-option:hover {
+  border-color: #1a73e8;
+  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.1);
+}
+
+.type-option.selected {
+  border-color: #1a73e8;
+  background: #e8f0fe;
+}
+
+.type-icon {
+  font-size: 48px;
+}
+
+.type-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #202124;
+  text-align: center;
+}
+
+.error-message {
+  padding: 12px 16px;
+  background: #fce8e6;
+  border: 1px solid #f28b82;
+  border-radius: 8px;
+  color: #c5221f;
+  font-size: 14px;
+  margin: 16px 0;
+}
+
+.join-button-container {
+  margin-top: 32px;
+}
+
+.btn-join {
+  padding: 14px 48px;
+  background: #1a73e8;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 200px;
+}
+
+.btn-join:hover:not(:disabled) {
+  background: #1765cc;
+  box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+}
+
+.btn-join:disabled {
+  background: #dadce0;
+  color: #80868b;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .lobby-header h1 {
+    font-size: 32px;
+  }
+
+  .lobby-actions {
+    flex-direction: column;
+  }
+
+  .type-options {
+    flex-direction: column;
+  }
+}
+
+
+

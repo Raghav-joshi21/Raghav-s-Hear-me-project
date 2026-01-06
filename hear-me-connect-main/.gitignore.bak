@@ -1,0 +1,17 @@
+# # Node
+# node_modules/
+# .vite/
+
+# # Python
+# venv/
+# __pycache__/
+
+# # Env
+# .env
+
+# # Build
+# dist/
+# build/
+
+# # OS
+# .DS_Store
