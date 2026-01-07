@@ -13,6 +13,7 @@ class GestureRelay {
     this.pollingInterval = null;
     this.lastMessageId = 0;
     this.isPolling = false;
+    this.backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
   }
 
   /**
@@ -56,7 +57,7 @@ class GestureRelay {
     }
 
     try {
-      const url = `http://localhost:8000/gesture/${this.roomId}`;
+      const url = `${this.backendUrl}/gesture/${this.roomId}`;
       console.log(`🤲 Sending gesture prediction: "${predictionText}"`);
       
       const response = await fetch(url, {
@@ -84,7 +85,7 @@ class GestureRelay {
     } catch (error) {
       console.error("❌ Error sending gesture prediction:", error);
       if (error.message && error.message.includes("fetch")) {
-        console.error("   → Backend may not be running or endpoint not found. Check http://localhost:8000");
+        console.error(`   → Backend may not be running or endpoint not found. Check ${this.backendUrl}`);
       }
       // Don't throw - gesture predictions are non-critical
     }
@@ -106,7 +107,7 @@ class GestureRelay {
     this.pollingInterval = setInterval(async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/gesture/${this.roomId}?since=${this.lastMessageId}`,
+          `${this.backendUrl}/gesture/${this.roomId}?since=${this.lastMessageId}`,
           {
             method: "GET",
           }

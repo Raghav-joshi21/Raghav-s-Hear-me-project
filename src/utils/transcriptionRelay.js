@@ -12,6 +12,7 @@ class TranscriptionRelay {
     this.pollingInterval = null;
     this.lastMessageId = 0;
     this.isPolling = false;
+    this.backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
   }
 
   /**
@@ -51,7 +52,7 @@ class TranscriptionRelay {
     }
 
     try {
-      const url = `http://localhost:8000/transcription/${this.roomId}`;
+      const url = `${this.backendUrl}/transcription/${this.roomId}`;
       console.log(`📤 Sending to: ${url}`, message);
       
       const response = await fetch(url, {
@@ -87,7 +88,7 @@ class TranscriptionRelay {
       console.error("❌ Error sending transcription:", error);
       
       if (error.message && error.message.includes("fetch")) {
-        throw new Error("Cannot connect to backend. Make sure it's running on http://localhost:8000");
+        throw new Error(`Cannot connect to backend at ${this.backendUrl}`);
       }
       
       throw error;
@@ -110,7 +111,7 @@ class TranscriptionRelay {
     this.pollingInterval = setInterval(async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/transcription/${this.roomId}?since=${this.lastMessageId}`,
+          `${this.backendUrl}/transcription/${this.roomId}?since=${this.lastMessageId}`,
           {
             method: "GET",
           }

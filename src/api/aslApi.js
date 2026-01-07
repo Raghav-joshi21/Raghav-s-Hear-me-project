@@ -3,7 +3,7 @@
  * Sends hand landmarks to FastAPI backend for prediction
  */
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
 
 /**
  * Convert MediaPipe landmarks array to flat array of 63 values (21 points × 3 coords)

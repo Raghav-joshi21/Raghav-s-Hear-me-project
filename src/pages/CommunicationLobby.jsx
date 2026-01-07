@@ -28,7 +28,8 @@ const CommunicationLobby = () => {
       setIsCreating(true);
       setError("");
 
-      const response = await fetch("http://localhost:8000/room", {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+      const response = await fetch(`${backendUrl}/room`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ roomId: roomId.trim() }),
@@ -86,7 +87,7 @@ const CommunicationLobby = () => {
 
     // Navigate to call page with room ID, participant type, and name
     const encodedName = encodeURIComponent(participantName.trim());
-    window.location.href = `/test-communication/call/${roomId.trim()}?type=${participantType}&name=${encodedName}`;
+    window.location.href = `/communication/call/${roomId.trim()}?type=${participantType}&name=${encodedName}`;
   }, [roomId, participantType, participantName]);
 
   return (
