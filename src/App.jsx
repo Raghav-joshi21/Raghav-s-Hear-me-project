@@ -13,6 +13,8 @@ function App() {
   const pathname = window.location.pathname;
   const hash = window.location.hash;
 
+  console.log("📍 App rendering - pathname:", pathname, "hash:", hash);
+
   const isSignGifTest =
     pathname === "/sign-gif-test" || hash === "#/sign-gif-test";
   const isAzureTest =

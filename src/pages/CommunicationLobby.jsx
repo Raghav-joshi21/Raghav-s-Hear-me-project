@@ -3,6 +3,8 @@ import { CopyIcon } from "../components/Icons";
 import "./CommunicationLobby.css";
 
 const CommunicationLobby = () => {
+  console.log("✅ CommunicationLobby component rendering");
+  
   const [roomId, setRoomId] = useState("");
   const [createdRoomId, setCreatedRoomId] = useState("");
   const [participantType, setParticipantType] = useState("");
@@ -28,7 +30,8 @@ const CommunicationLobby = () => {
       setIsCreating(true);
       setError("");
 
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+      const backendUrl =
+        import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
       const response = await fetch(`${backendUrl}/room`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,7 +40,9 @@ const CommunicationLobby = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.message || "Failed to create room");
+        throw new Error(
+          errorData.error || errorData.message || "Failed to create room"
+        );
       }
 
       const data = await response.json();
@@ -60,11 +65,14 @@ const CommunicationLobby = () => {
   // Copy room code to clipboard
   const handleCopyRoomCode = useCallback(() => {
     if (createdRoomId) {
-      navigator.clipboard.writeText(createdRoomId).then(() => {
-        alert("Room code copied to clipboard!");
-      }).catch(() => {
-        alert("Failed to copy room code");
-      });
+      navigator.clipboard
+        .writeText(createdRoomId)
+        .then(() => {
+          alert("Room code copied to clipboard!");
+        })
+        .catch(() => {
+          alert("Failed to copy room code");
+        });
     }
   }, [createdRoomId]);
 
@@ -183,33 +191,39 @@ const CommunicationLobby = () => {
           <h3>Select participant type</h3>
           <div className="type-options">
             <button
-              className={`type-option ${participantType === "deaf" ? "selected" : ""}`}
+              className={`type-option ${
+                participantType === "deaf" ? "selected" : ""
+              }`}
               onClick={() => setParticipantType("deaf")}
             >
               <span className="type-icon">👂</span>
-              <span className="type-label">Enable features for Deaf participant</span>
+              <span className="type-label">
+                Enable features for Deaf participant
+              </span>
             </button>
             <button
-              className={`type-option ${participantType === "hearing" ? "selected" : ""}`}
+              className={`type-option ${
+                participantType === "hearing" ? "selected" : ""
+              }`}
               onClick={() => setParticipantType("hearing")}
             >
               <span className="type-icon">👤</span>
-              <span className="type-label">Enable features for Hearing participant</span>
+              <span className="type-label">
+                Enable features for Hearing participant
+              </span>
             </button>
           </div>
         </div>
 
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
+        {error && <div className="error-message">{error}</div>}
 
         <div className="join-button-container">
           <button
             className="btn-join"
             onClick={handleJoinRoom}
-            disabled={!roomId.trim() || !participantType || !participantName.trim()}
+            disabled={
+              !roomId.trim() || !participantType || !participantName.trim()
+            }
           >
             Join Meeting
           </button>
@@ -220,4 +234,3 @@ const CommunicationLobby = () => {
 };
 
 export default CommunicationLobby;
-
