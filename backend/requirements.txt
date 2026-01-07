@@ -1,9 +1,9 @@
 fastapi
-uvicorn[standard]
 gunicorn
+uvicorn
+python-multipart
 pydantic
 numpy
-python-multipart
 # For inference only, not model training (use only if imported)
 tensorflow
 # Azure SDKs actually imported in code:
