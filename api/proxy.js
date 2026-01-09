@@ -41,33 +41,35 @@ export default async function handler(req, res) {
     backendPath = backendPath.join("/");
   }
 
-  // Fallback: If path is not in query, try to extract from URL
-  // This handles cases where the rewrite might not work correctly
-  // Also handle cases where path might be URL-encoded in the query
-  if (!backendPath || backendPath === "") {
-    // Try to decode if it's URL encoded
-    if (req.query.path && typeof req.query.path === 'string') {
-      try {
-        backendPath = decodeURIComponent(req.query.path);
-      } catch (e) {
-        backendPath = req.query.path;
-      }
-    }
-    
-    // If still empty, extract from URL directly
-    if (!backendPath && req.url) {
-      const urlMatch = req.url.match(/\/api\/(?:backend|proxy)\/(.+?)(\?|$)/);
-      if (urlMatch && urlMatch[1]) {
-        backendPath = decodeURIComponent(urlMatch[1]);
-        console.log("[Proxy Debug] Extracted path from URL:", backendPath);
-      }
-    }
-  } else {
-    // Decode the path if it's URL encoded
+  // Decode URL-encoded path
+  if (backendPath && typeof backendPath === 'string') {
     try {
       backendPath = decodeURIComponent(backendPath);
     } catch (e) {
       // If decoding fails, use as-is
+      console.warn("[Proxy] Failed to decode path:", e.message);
+    }
+  }
+
+  // Fallback: If path is still empty, try to extract from URL directly
+  // This handles cases where the rewrite might not pass the path correctly
+  if (!backendPath || backendPath === "") {
+    if (req.url) {
+      // Try multiple patterns to extract path
+      const patterns = [
+        /\/api\/backend\/(.+?)(\?|$)/,  // /api/backend/room
+        /\/api\/proxy\/(.+?)(\?|$)/,     // /api/proxy/room (direct call)
+        /path=([^&]+)/,                  // ?path=room
+      ];
+      
+      for (const pattern of patterns) {
+        const match = req.url.match(pattern);
+        if (match && match[1]) {
+          backendPath = decodeURIComponent(match[1]);
+          console.log("[Proxy Debug] Extracted path from URL using pattern:", backendPath);
+          break;
+        }
+      }
     }
   }
 
