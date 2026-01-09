@@ -14,7 +14,16 @@ export const getApiBaseUrl = () => {
   // CRITICAL: If running on HTTPS (Vercel), ALWAYS use /api proxy
   // This prevents mixed content errors (HTTPS page requesting HTTP resources)
   // IGNORE VITE_BACKEND_URL when on HTTPS - it causes mixed content errors
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+  
+  // Check multiple ways to detect HTTPS/Vercel
+  const isHTTPS = typeof window !== 'undefined' && (
+    window.location.protocol === 'https:' ||
+    window.location.hostname.includes('vercel.app') ||
+    window.location.hostname.includes('vercel.com')
+  );
+  
+  if (isHTTPS) {
+    console.log('🔒 HTTPS detected, using /api proxy');
     return '/api';
   }
   
@@ -24,7 +33,13 @@ export const getApiBaseUrl = () => {
   }
   
   // In development (HTTP localhost), use environment variable or localhost
-  return import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+  const envUrl = import.meta.env.VITE_BACKEND_URL;
+  if (envUrl && !envUrl.startsWith('http://51.124.124.18')) {
+    // Only use VITE_BACKEND_URL if it's not the Azure VM IP (to prevent mixed content)
+    return envUrl;
+  }
+  
+  return 'http://localhost:8000';
 };
 
 /**
