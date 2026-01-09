@@ -7,10 +7,10 @@
  * Route: /api/backend/[...path]
  * Example: /api/backend/room -> http://51.124.124.18/room
  * 
- * Uses Vercel's Web API format (Request/Response)
+ * Uses Vercel's Node.js runtime format (req, res)
  */
 
-export default async function handler(request, context) {
+export default async function handler(req, res) {
   // Handle OPTIONS preflight immediately
   if (request.method === 'OPTIONS') {
     return new Response(null, {
