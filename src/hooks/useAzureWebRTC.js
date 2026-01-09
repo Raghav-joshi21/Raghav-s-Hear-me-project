@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { getApiUrl } from "../utils/apiConfig";
 
 // Lazy load Azure SDK
 let CallClient, CallAgent, VideoStreamRenderer, LocalVideoStream, AzureCommunicationTokenCredential;
@@ -48,8 +49,7 @@ export const useAzureWebRTC = ({
   // Fetch token
   const fetchToken = useCallback(async () => {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
-      const response = await fetch(`${backendUrl}/token`, {
+      const response = await fetch(getApiUrl('/token'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -67,9 +67,8 @@ export const useAzureWebRTC = ({
       return data.token;
     } catch (err) {
       console.error("Error fetching token:", err);
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
       const errorMsg = err.message.includes("fetch") 
-        ? `Cannot connect to backend at ${backendUrl}`
+        ? `Cannot connect to backend`
         : err.message;
       setError(errorMsg);
       onError?.(errorMsg);
@@ -349,9 +348,8 @@ export const useAzureWebRTC = ({
       // For Azure Communication Services, we use join() method for group calls
       // Fetch or create room from backend to get proper GUID
       let groupCallGuid;
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
       try {
-        const roomResponse = await fetch(`${backendUrl}/room/${encodeURIComponent(groupCallId)}`, {
+        const roomResponse = await fetch(getApiUrl(`/room/${encodeURIComponent(groupCallId)}`), {
           method: "GET",
         });
         
@@ -368,13 +366,13 @@ export const useAzureWebRTC = ({
           // STEP 1: Add current user as participant if not already added
           // Get current user ID and add to room
           try {
-            const myUserIdResponse = await fetch(`${backendUrl}/my-user-id`);
+            const myUserIdResponse = await fetch(getApiUrl('/my-user-id'));
             if (myUserIdResponse.ok) {
               const myUserData = await myUserIdResponse.json();
               const myUserId = myUserData.communicationUserId;
               
               // Add user to room
-              const addParticipantResponse = await fetch(`${backendUrl}/room/${encodeURIComponent(groupCallId)}/add-participant`, {
+              const addParticipantResponse = await fetch(getApiUrl(`/room/${encodeURIComponent(groupCallId)}/add-participant`), {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ communicationUserId: myUserId }),
@@ -391,7 +389,7 @@ export const useAzureWebRTC = ({
           }
         } else {
           // Create new room
-          const createResponse = await fetch(`${backendUrl}/room`, {
+          const createResponse = await fetch(getApiUrl('/room'), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ roomId: groupCallId }),

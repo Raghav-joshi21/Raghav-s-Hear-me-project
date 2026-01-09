@@ -4,6 +4,8 @@
  * Uses backend API for real-time message relay (same pattern as transcription)
  */
 
+import { getApiUrl } from './apiConfig';
+
 class GestureRelay {
   constructor() {
     this.roomId = null;
@@ -13,7 +15,6 @@ class GestureRelay {
     this.pollingInterval = null;
     this.lastMessageId = 0;
     this.isPolling = false;
-    this.backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
   }
 
   /**
@@ -57,7 +58,7 @@ class GestureRelay {
     }
 
     try {
-      const url = `${this.backendUrl}/gesture/${this.roomId}`;
+      const url = getApiUrl(`/gesture/${this.roomId}`);
       console.log(`🤲 Sending gesture prediction: "${predictionText}"`);
       
       const response = await fetch(url, {
@@ -85,7 +86,7 @@ class GestureRelay {
     } catch (error) {
       console.error("❌ Error sending gesture prediction:", error);
       if (error.message && error.message.includes("fetch")) {
-        console.error(`   → Backend may not be running or endpoint not found. Check ${this.backendUrl}`);
+        console.error(`   → Backend may not be running or endpoint not found.`);
       }
       // Don't throw - gesture predictions are non-critical
     }
@@ -107,7 +108,7 @@ class GestureRelay {
     this.pollingInterval = setInterval(async () => {
       try {
         const response = await fetch(
-          `${this.backendUrl}/gesture/${this.roomId}?since=${this.lastMessageId}`,
+          getApiUrl(`/gesture/${this.roomId}?since=${this.lastMessageId}`),
           {
             method: "GET",
           }

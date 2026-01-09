@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
+import { getApiUrl } from "../utils/apiConfig";
 
 // Lazy load Azure SDK to improve initial page load
 let CallClient, CallAgent, VideoStreamRenderer, LocalVideoStream, AzureCommunicationTokenCredential;
@@ -45,7 +46,7 @@ const AzureVideoCallPanel = () => {
   // Fetch token from backend
   const fetchToken = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:8000/token", {
+      const response = await fetch(getApiUrl('/token'), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

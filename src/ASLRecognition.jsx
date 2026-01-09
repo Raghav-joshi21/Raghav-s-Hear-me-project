@@ -269,7 +269,8 @@ const ASLRecognition = () => {
     lastPredictionTimeRef.current = now;
 
     // Use the simple test API endpoint (working version)
-    fetch("http://localhost:8000/predict/alphabet", {
+    const { getApiUrl } = await import('./utils/apiConfig');
+    fetch(getApiUrl('/predict/alphabet'), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -344,7 +345,8 @@ const ASLRecognition = () => {
         );
 
         // Use the simple test API endpoint (working version)
-        const response = await fetch("http://localhost:8000/predict/word", {
+        const { getApiUrl } = await import('./utils/apiConfig');
+        const response = await fetch(getApiUrl('/predict/word'), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

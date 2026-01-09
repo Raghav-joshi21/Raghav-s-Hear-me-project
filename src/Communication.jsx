@@ -88,7 +88,7 @@ export default function Communication() {
     checkAPIStatus().then((status) => {
       if (!status.running) {
         console.warn("Backend API not running:", status.error);
-        setAslError("Backend API not running. Please start the backend server on http://localhost:8000");
+        setAslError("Backend API not running. Please check your backend connection.");
       } else {
         console.log("Backend API connected:", status.data);
         setAslError("");

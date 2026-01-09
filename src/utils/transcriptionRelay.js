@@ -4,6 +4,8 @@
  * Uses backend API for real-time message relay
  */
 
+import { getApiUrl } from './apiConfig';
+
 class TranscriptionRelay {
   constructor() {
     this.roomId = null;
@@ -12,7 +14,6 @@ class TranscriptionRelay {
     this.pollingInterval = null;
     this.lastMessageId = 0;
     this.isPolling = false;
-    this.backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
   }
 
   /**
@@ -28,7 +29,9 @@ class TranscriptionRelay {
     this.participantName = participantName || "Participant";
     this.onMessageCallback = onMessage;
 
-    console.log(`📡 Transcription relay initialized for ${participantName} (${participantType}) in room ${roomId}`);
+    console.log(
+      `📡 Transcription relay initialized for ${participantName} (${participantType}) in room ${roomId}`
+    );
 
     // If deaf participant, start polling for messages
     if (participantType === "deaf") {
@@ -52,7 +55,7 @@ class TranscriptionRelay {
     }
 
     try {
-      const url = `${this.backendUrl}/transcription/${this.roomId}`;
+      const url = getApiUrl(`/transcription/${this.roomId}`);
       console.log(`📤 Sending to: ${url}`, message);
       
       const response = await fetch(url, {
@@ -70,25 +73,36 @@ class TranscriptionRelay {
       });
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => response.statusText);
-        console.error(`❌ Failed to send transcription (${response.status}):`, errorText);
-        
+        const errorText = await response
+          .text()
+          .catch(() => response.statusText);
+        console.error(
+          `❌ Failed to send transcription (${response.status}):`,
+          errorText
+        );
+
         if (response.status === 404) {
-          throw new Error("Backend endpoint not found (404). Make sure backend is running and has the transcription endpoints.");
+          throw new Error(
+            "Backend endpoint not found (404). Make sure backend is running and has the transcription endpoints."
+          );
         } else if (response.status === 500) {
-          throw new Error("Backend server error (500). Check backend console for errors.");
+          throw new Error(
+            "Backend server error (500). Check backend console for errors."
+          );
         } else {
-          throw new Error(`Failed to send transcription: ${response.status} ${errorText}`);
+          throw new Error(
+            `Failed to send transcription: ${response.status} ${errorText}`
+          );
         }
       }
-      
+
       console.log("✅ Transcription sent successfully");
       return await response.json();
     } catch (error) {
       console.error("❌ Error sending transcription:", error);
       
       if (error.message && error.message.includes("fetch")) {
-        throw new Error(`Cannot connect to backend at ${this.backendUrl}`);
+        throw new Error(`Cannot connect to backend.`);
       }
       
       throw error;
@@ -111,7 +125,7 @@ class TranscriptionRelay {
     this.pollingInterval = setInterval(async () => {
       try {
         const response = await fetch(
-          `${this.backendUrl}/transcription/${this.roomId}?since=${this.lastMessageId}`,
+          getApiUrl(`/transcription/${this.roomId}?since=${this.lastMessageId}`),
           {
             method: "GET",
           }
@@ -119,7 +133,7 @@ class TranscriptionRelay {
 
         if (response.ok) {
           const messages = await response.json();
-          
+
           if (messages && messages.length > 0) {
             messages.forEach((msg) => {
               if (msg.id > this.lastMessageId) {
@@ -164,4 +178,3 @@ class TranscriptionRelay {
 
 // Export singleton instance
 export const transcriptionRelay = new TranscriptionRelay();
-

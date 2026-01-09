@@ -108,7 +108,8 @@ export async function initializeAzureSDK() {
     // At this point, if callClient exists, callAgent must also exist (or we just created a fresh callClient)
     if (!callAgent) {
       // Fetch token from backend
-      const tokenResponse = await fetch("http://localhost:8000/api/azure/token", {
+      const { getApiUrl } = await import('./apiConfig');
+      const tokenResponse = await fetch(getApiUrl('/api/azure/token'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -192,7 +193,8 @@ export async function initializeAzureSDK() {
 export async function getOrCreateRoom(roomId) {
   try {
     // Try to get existing room
-    const getResponse = await fetch(`http://localhost:8000/room/${encodeURIComponent(roomId.trim())}`, {
+    const { getApiUrl } = await import('./apiConfig');
+    const getResponse = await fetch(getApiUrl(`/room/${encodeURIComponent(roomId.trim())}`), {
       method: "GET",
     });
 
@@ -204,7 +206,7 @@ export async function getOrCreateRoom(roomId) {
     }
 
     // Create new room if doesn't exist
-    const createResponse = await fetch("http://localhost:8000/room", {
+    const createResponse = await fetch(getApiUrl('/room'), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ roomId: roomId.trim(), userId: currentUserId }),
@@ -236,8 +238,9 @@ export async function addParticipantToRoom(roomId, userId) {
   }
 
   try {
+    const { getApiUrl } = await import('./apiConfig');
     const response = await fetch(
-      `http://localhost:8000/room/${encodeURIComponent(roomId.trim())}/add-participant`,
+      getApiUrl(`/room/${encodeURIComponent(roomId.trim())}/add-participant`),
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

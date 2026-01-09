@@ -4,7 +4,7 @@ import "./CommunicationLobby.css";
 
 const CommunicationLobby = () => {
   console.log("✅ CommunicationLobby component rendering");
-  
+
   const [roomId, setRoomId] = useState("");
   const [createdRoomId, setCreatedRoomId] = useState("");
   const [participantType, setParticipantType] = useState("");
@@ -30,9 +30,8 @@ const CommunicationLobby = () => {
       setIsCreating(true);
       setError("");
 
-      const backendUrl =
-        import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
-      const response = await fetch(`${backendUrl}/room`, {
+      const { getApiUrl } = await import('../utils/apiConfig');
+      const response = await fetch(getApiUrl('/room'), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ roomId: roomId.trim() }),

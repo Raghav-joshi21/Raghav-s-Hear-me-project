@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { CallClient, CallAgent, VideoStreamRenderer, LocalVideoStream } from "@azure/communication-calling";
 import { AzureCommunicationTokenCredential } from "@azure/communication-common";
+import { getApiUrl } from "../utils/apiConfig";
 
 /**
  * Azure Video Call Component
@@ -33,7 +34,7 @@ const AzureVideoCall = ({ onCallStateChange, onError }) => {
   // Fetch token from backend
   const fetchToken = useCallback(async () => {
     try {
-      const response = await fetch("http://localhost:8000/token", {
+      const response = await fetch(getApiUrl('/token'), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

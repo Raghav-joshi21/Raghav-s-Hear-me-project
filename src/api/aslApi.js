@@ -3,7 +3,9 @@
  * Sends hand landmarks to FastAPI backend for prediction
  */
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8000";
+import { getApiBaseUrl, getApiUrl } from '../utils/apiConfig';
+
+const API_BASE_URL = getApiBaseUrl();
 
 /**
  * Convert MediaPipe landmarks array to flat array of 63 values (21 points × 3 coords)
@@ -32,7 +34,7 @@ export const flattenLandmarks = (landmarks) => {
  */
 export const checkAPIStatus = async () => {
   try {
-    const response = await fetch(`${API_BASE_URL}/`, {
+    const response = await fetch(getApiUrl('/'), {
       method: "GET",
     });
     if (response.ok) {
@@ -72,7 +74,7 @@ export const predictASL = async (mode, landmarks) => {
 
   try {
     // Try the unified /predict endpoint first (main.py)
-    let response = await fetch(`${API_BASE_URL}/predict`, {
+    let response = await fetch(getApiUrl('/predict'), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -86,7 +88,7 @@ export const predictASL = async (mode, landmarks) => {
     // If that fails, try the separate endpoints (simple_test_api.py)
     if (!response.ok) {
       const endpoint = mode === "alphabet" ? "/predict/alphabet" : "/predict/word";
-      response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      response = await fetch(getApiUrl(endpoint), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -98,7 +100,7 @@ export const predictASL = async (mode, landmarks) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error(`API request failed: ${response.status}`, errorText);
-      throw new Error(`API request failed: ${response.status}. Make sure backend is running on ${API_BASE_URL}`);
+      throw new Error(`API request failed: ${response.status}. Make sure backend is running.`);
     }
 
     const data = await response.json();
