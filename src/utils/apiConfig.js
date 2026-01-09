@@ -11,17 +11,19 @@
  * @returns {string} Base URL for backend API
  */
 export const getApiBaseUrl = () => {
-  // Check if we're running on HTTPS (Vercel production) - always use /api proxy
+  // CRITICAL: If running on HTTPS (Vercel), ALWAYS use /api proxy
+  // This prevents mixed content errors (HTTPS page requesting HTTP resources)
+  // IGNORE VITE_BACKEND_URL when on HTTPS - it causes mixed content errors
   if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
     return '/api';
   }
   
-  // In production build but local testing, use /api if PROD is true
+  // In production build (but not HTTPS - local testing), use /api if PROD is true
   if (import.meta.env.PROD) {
     return '/api';
   }
   
-  // In development, use environment variable or localhost
+  // In development (HTTP localhost), use environment variable or localhost
   return import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 };
 
