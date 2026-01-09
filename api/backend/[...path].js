@@ -10,18 +10,49 @@
  * Uses Vercel's Web API format (Request/Response)
  */
 
-export default async function handler(request) {
+export default async function handler(request, context) {
+  // Handle OPTIONS preflight immediately
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
+  }
+
   // Get the backend URL from environment variable (default to Azure VM)
   const BACKEND_URL = process.env.BACKEND_URL || 'http://51.124.124.18';
   
   // Extract the path from the catch-all route
-  // URL: /api/backend/room/ABC123 -> pathSegments = ['room', 'ABC123']
+  // In Vercel, for [...path].js, the path segments are in context.params.path (array)
+  // Or we can extract from the URL
   const url = new URL(request.url);
-  const pathMatch = url.pathname.match(/^\/api\/backend\/(.*)$/);
-  const backendPath = pathMatch ? pathMatch[1] : '';
   
-  // Construct the full backend URL
-  const backendUrl = `${BACKEND_URL}/${backendPath}`;
+  // Try to get path from context.params first (Vercel's way)
+  let backendPath = '';
+  if (context && context.params && context.params.path) {
+    // context.params.path is an array: ['room'] or ['room', 'ABC123']
+    backendPath = Array.isArray(context.params.path) 
+      ? context.params.path.join('/')
+      : context.params.path;
+  } else {
+    // Fallback: extract from URL pathname
+    const pathMatch = url.pathname.match(/^\/api\/backend\/(.*)$/);
+    if (pathMatch && pathMatch[1]) {
+      backendPath = pathMatch[1];
+    }
+  }
+  
+  // Construct the full backend URL (handle root path)
+  let backendUrl;
+  if (backendPath === '') {
+    backendUrl = BACKEND_URL;
+  } else {
+    backendUrl = `${BACKEND_URL}/${backendPath}`;
+  }
   
   // Preserve query parameters from the original request
   const queryString = url.search;
@@ -46,11 +77,18 @@ export default async function handler(request) {
     
     // Get request body if present
     let body = null;
-    if (request.method !== 'GET' && request.method !== 'HEAD' && request.method !== 'OPTIONS') {
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
       try {
-        body = await request.text();
+        const contentType = request.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          // For JSON, get the text and keep it as string (don't parse)
+          body = await request.text();
+        } else {
+          body = await request.text();
+        }
       } catch (e) {
-        // No body or already consumed
+        console.warn('[Proxy] Could not read request body:', e.message);
+        // No body or already consumed - continue without body
       }
     }
     
@@ -87,14 +125,6 @@ export default async function handler(request) {
     responseHeaders.set('Access-Control-Allow-Origin', '*');
     responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
     responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
-    // Handle OPTIONS preflight requests
-    if (request.method === 'OPTIONS') {
-      return new Response(JSON.stringify({}), {
-        status: 200,
-        headers: responseHeaders,
-      });
-    }
     
     // Return the response
     return new Response(
