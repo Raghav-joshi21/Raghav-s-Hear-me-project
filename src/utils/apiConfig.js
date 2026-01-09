@@ -16,29 +16,36 @@ export const getApiBaseUrl = () => {
   // IGNORE VITE_BACKEND_URL when on HTTPS - it causes mixed content errors
   
   // Check multiple ways to detect HTTPS/Vercel
-  const isHTTPS = typeof window !== 'undefined' && (
-    window.location.protocol === 'https:' ||
-    window.location.hostname.includes('vercel.app') ||
-    window.location.hostname.includes('vercel.com')
-  );
-  
-  if (isHTTPS) {
-    console.log('🔒 HTTPS detected, using /api proxy');
-    return '/api';
+  if (typeof window !== 'undefined') {
+    const isHTTPS = window.location.protocol === 'https:' ||
+                    window.location.hostname.includes('vercel.app') ||
+                    window.location.hostname.includes('vercel.com');
+    
+    if (isHTTPS) {
+      console.log('🔒 HTTPS/Vercel detected, using /api proxy (ignoring VITE_BACKEND_URL)');
+      return '/api';
+    }
   }
   
   // In production build (but not HTTPS - local testing), use /api if PROD is true
   if (import.meta.env.PROD) {
+    console.log('📦 Production build detected, using /api');
     return '/api';
   }
   
   // In development (HTTP localhost), use environment variable or localhost
   const envUrl = import.meta.env.VITE_BACKEND_URL;
-  if (envUrl && !envUrl.startsWith('http://51.124.124.18')) {
-    // Only use VITE_BACKEND_URL if it's not the Azure VM IP (to prevent mixed content)
+  if (envUrl) {
+    // NEVER use HTTP URLs that would cause mixed content errors
+    if (envUrl.startsWith('http://') && !envUrl.includes('localhost')) {
+      console.warn('⚠️ VITE_BACKEND_URL is HTTP (not localhost), ignoring to prevent mixed content. Using /api instead.');
+      return '/api';
+    }
+    console.log('🔧 Using VITE_BACKEND_URL:', envUrl);
     return envUrl;
   }
   
+  console.log('🏠 Using default localhost:8000');
   return 'http://localhost:8000';
 };
 
