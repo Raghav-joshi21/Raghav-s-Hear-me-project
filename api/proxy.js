@@ -206,15 +206,23 @@ export default async function handler(req, res) {
     res.status(response.status).json(responseData);
   } catch (error) {
     console.error(`[Proxy Error] ${error.message}`);
+    console.error(`[Proxy Error] Stack:`, error.stack);
     console.error(
       `[Proxy Error] Failed to proxy ${req.method} ${req.url} to ${fullBackendUrl}`
     );
 
-    // Return a proper error response
-    res.status(502).json({
-      error: "Bad Gateway",
-      message: `Failed to connect to backend: ${error.message}`,
-      backendUrl: fullBackendUrl,
-    });
+    // Ensure we always return JSON, never HTML
+    try {
+      res.status(502).json({
+        error: "Bad Gateway",
+        message: `Failed to connect to backend: ${error.message}`,
+        backendUrl: fullBackendUrl,
+        requestUrl: req.url,
+        requestMethod: req.method,
+      });
+    } catch (resError) {
+      // If we can't send JSON response, log it
+      console.error("[Proxy Error] Failed to send error response:", resError);
+    }
   }
 }
