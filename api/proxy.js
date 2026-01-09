@@ -137,15 +137,28 @@ export default async function handler(req, res) {
     // Always get text first to check if it's HTML
     responseText = await response.text();
     
-    // Check if response is HTML (error page)
-    if (responseText.trim().startsWith("<!DOCTYPE") || responseText.trim().startsWith("<html")) {
+    // Check if response is HTML (error page) - check multiple patterns
+    const trimmedText = responseText.trim();
+    const isHTML = trimmedText.startsWith("<!DOCTYPE") || 
+                   trimmedText.startsWith("<!doctype") ||
+                   trimmedText.startsWith("<html") ||
+                   trimmedText.startsWith("<HTML") ||
+                   trimmedText.toLowerCase().includes("<html") ||
+                   (trimmedText.startsWith("<") && trimmedText.includes("html"));
+    
+    if (isHTML) {
       console.error("[Proxy Error] Backend returned HTML instead of JSON");
-      console.error("[Proxy Error] Response preview:", responseText.substring(0, 500));
+      console.error("[Proxy Error] Response status:", response.status);
+      console.error("[Proxy Error] Response preview:", trimmedText.substring(0, 500));
+      console.error("[Proxy Error] Backend URL:", fullBackendUrl);
+      
+      // Return proper JSON error so frontend can handle it
       return res.status(502).json({
         error: "Bad Gateway",
         message: "Backend returned HTML error page instead of JSON. The backend may be down or the endpoint doesn't exist.",
         backendUrl: fullBackendUrl,
         statusCode: response.status,
+        details: "Check backend logs and ensure the endpoint exists and returns JSON.",
       });
     }
 

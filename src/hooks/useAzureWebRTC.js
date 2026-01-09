@@ -354,6 +354,13 @@ export const useAzureWebRTC = ({
         });
         
         if (roomResponse.ok) {
+          // Check content-type before parsing JSON
+          const contentType = roomResponse.headers.get("content-type") || "";
+          if (!contentType.includes("application/json")) {
+            const text = await roomResponse.text();
+            console.error("❌ Non-JSON response from room endpoint:", text.substring(0, 200));
+            throw new Error(`Backend returned non-JSON response: ${contentType}`);
+          }
           const roomData = await roomResponse.json();
           groupCallGuid = roomData.azureRoomId || roomData.groupCallId || roomData.roomId;
           console.log("✅ Room found:", groupCallGuid);
