@@ -1,15 +1,16 @@
 {
   "rewrites": [
-    { "source": "/api", "destination": "http://51.124.124.18/" },
-    { "source": "/api/token", "destination": "http://51.124.124.18/token" },
-    { "source": "/api/my-user-id", "destination": "http://51.124.124.18/my-user-id" },
-    { "source": "/api/room", "destination": "http://51.124.124.18/room" },
-    { "source": "/api/room/:roomId", "destination": "http://51.124.124.18/room/:roomId" },
-    { "source": "/api/room/:roomId/add-participant", "destination": "http://51.124.124.18/room/:roomId/add-participant" },
-    { "source": "/api/api/azure/token", "destination": "http://51.124.124.18/api/azure/token" },
-    { "source": "/api/predict", "destination": "http://51.124.124.18/predict" },
-    { "source": "/api/transcription/:roomId", "destination": "http://51.124.124.18/transcription/:roomId" },
-    { "source": "/api/gesture/:roomId", "destination": "http://51.124.124.18/gesture/:roomId" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/api",
+      "destination": "http://51.124.124.18/"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "http://51.124.124.18/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ]
 }
