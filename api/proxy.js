@@ -40,11 +40,31 @@ export default async function handler(req, res) {
 
   // Fallback: If path is not in query, try to extract from URL
   // This handles cases where the rewrite might not work correctly
-  if (!backendPath && req.url) {
-    const urlMatch = req.url.match(/\/api\/backend\/(.+?)(\?|$)/);
-    if (urlMatch && urlMatch[1]) {
-      backendPath = urlMatch[1];
-      console.log("[Proxy Debug] Extracted path from URL:", backendPath);
+  // Also handle cases where path might be URL-encoded in the query
+  if (!backendPath || backendPath === "") {
+    // Try to decode if it's URL encoded
+    if (req.query.path && typeof req.query.path === 'string') {
+      try {
+        backendPath = decodeURIComponent(req.query.path);
+      } catch (e) {
+        backendPath = req.query.path;
+      }
+    }
+    
+    // If still empty, extract from URL directly
+    if (!backendPath && req.url) {
+      const urlMatch = req.url.match(/\/api\/(?:backend|proxy)\/(.+?)(\?|$)/);
+      if (urlMatch && urlMatch[1]) {
+        backendPath = decodeURIComponent(urlMatch[1]);
+        console.log("[Proxy Debug] Extracted path from URL:", backendPath);
+      }
+    }
+  } else {
+    // Decode the path if it's URL encoded
+    try {
+      backendPath = decodeURIComponent(backendPath);
+    } catch (e) {
+      // If decoding fails, use as-is
     }
   }
 
@@ -145,6 +165,16 @@ export default async function handler(req, res) {
     });
 
     // Return the response
+    // Ensure we're returning JSON, not HTML
+    if (typeof responseData === 'string' && responseData.trim().startsWith('<!DOCTYPE')) {
+      console.error('[Proxy Error] Backend returned HTML instead of JSON:', responseData.substring(0, 200));
+      return res.status(502).json({
+        error: 'Bad Gateway',
+        message: 'Backend returned HTML instead of JSON. Check backend logs.',
+        backendUrl: fullBackendUrl,
+      });
+    }
+    
     res.status(response.status).json(responseData);
   } catch (error) {
     console.error(`[Proxy Error] ${error.message}`);
