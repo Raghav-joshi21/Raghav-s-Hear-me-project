@@ -187,16 +187,6 @@ export default async function handler(req, res) {
     });
 
     // Return the response
-    // Ensure we're returning JSON, not HTML
-    if (typeof responseData === 'string' && responseData.trim().startsWith('<!DOCTYPE')) {
-      console.error('[Proxy Error] Backend returned HTML instead of JSON:', responseData.substring(0, 200));
-      return res.status(502).json({
-        error: 'Bad Gateway',
-        message: 'Backend returned HTML instead of JSON. Check backend logs.',
-        backendUrl: fullBackendUrl,
-      });
-    }
-    
     res.status(response.status).json(responseData);
   } catch (error) {
     console.error(`[Proxy Error] ${error.message}`);
