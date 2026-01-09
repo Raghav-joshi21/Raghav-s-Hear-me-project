@@ -2,8 +2,9 @@
  * Vercel Serverless Function: Backend Proxy (Catch-all)
  * 
  * This function acts as an HTTPS proxy between the frontend (HTTPS) and backend (HTTP).
- * Route: /api/backend/[...slug]
- * Example: /api/backend/room -> http://51.124.124.18/room
+ * Route: /api/[...slug]
+ * Handles: /api/backend/* -> proxies to backend
+ * Handles: /api/test -> test endpoint
  * 
  * Uses Vercel's Node.js runtime format (req, res)
  */
@@ -12,7 +13,6 @@ export default async function handler(req, res) {
   // Log that the proxy function was called
   console.log("[Proxy] Function invoked - URL:", req.url, "Method:", req.method);
   console.log("[Proxy] Query params:", JSON.stringify(req.query));
-  console.log("[Proxy] Headers:", JSON.stringify(req.headers));
   
   // Handle OPTIONS preflight immediately
   if (req.method === "OPTIONS") {
@@ -28,29 +28,53 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  // Extract the path from the catch-all route
+  // In Vercel, for [...slug].js, the path segments are in req.query.slug (array)
+  // Example: /api/backend/room -> req.query.slug = ['backend', 'room']
+  // Example: /api/test -> req.query.slug = ['test']
+  let slugPath = "";
+
+  if (req.query.slug) {
+    // req.query.slug is an array: ['backend', 'room'] or ['test']
+    slugPath = Array.isArray(req.query.slug)
+      ? req.query.slug.join("/")
+      : req.query.slug;
+    console.log("[Proxy Debug] Extracted slug path:", slugPath);
+  } else {
+    // Fallback: extract from URL
+    const urlMatch = req.url.match(/\/api\/(.+?)(\?|$)/);
+    if (urlMatch && urlMatch[1]) {
+      slugPath = decodeURIComponent(urlMatch[1]);
+      console.log("[Proxy Debug] Extracted path from URL:", slugPath);
+    }
+  }
+
+  // Handle test endpoint
+  if (slugPath === "test" || slugPath.startsWith("test/")) {
+    return res.status(200).json({
+      message: "Serverless function is working!",
+      method: req.method,
+      url: req.url,
+      query: req.query,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  // Only proxy requests that start with "backend/"
+  if (!slugPath.startsWith("backend/")) {
+    return res.status(404).json({
+      error: "Not Found",
+      message: `Route /api/${slugPath} not found. Use /api/backend/* to proxy to backend.`,
+    });
+  }
+
   // Get the backend URL from environment variable (default to Azure VM)
   const BACKEND_URL = process.env.BACKEND_URL || "http://51.124.124.18";
 
-  // Extract the path from the catch-all route
-  // In Vercel, for [...slug].js, the path segments are in req.query.slug (array)
-  // Example: /api/backend/room -> req.query.slug = ['room']
-  // Example: /api/backend/room/ABC123 -> req.query.slug = ['room', 'ABC123']
-  let backendPath = "";
-
-  if (req.query.slug) {
-    // req.query.slug is an array: ['room'] or ['room', 'ABC123']
-    backendPath = Array.isArray(req.query.slug)
-      ? req.query.slug.join("/")
-      : req.query.slug;
-    console.log("[Proxy Debug] Extracted path from req.query.slug:", backendPath);
-  } else {
-    // Fallback: extract from URL
-    const urlMatch = req.url.match(/\/api\/backend\/(.+?)(\?|$)/);
-    if (urlMatch && urlMatch[1]) {
-      backendPath = decodeURIComponent(urlMatch[1]);
-      console.log("[Proxy Debug] Extracted path from URL:", backendPath);
-    }
-  }
+  // Remove "backend/" prefix to get the actual backend path
+  // slugPath = "backend/room" -> backendPath = "room"
+  // slugPath = "backend/room/ABC123" -> backendPath = "room/ABC123"
+  const backendPath = slugPath.replace(/^backend\//, "");
 
   // Construct the full backend URL
   let backendUrl;
