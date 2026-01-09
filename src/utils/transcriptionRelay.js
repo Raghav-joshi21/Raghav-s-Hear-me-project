@@ -4,7 +4,7 @@
  * Uses backend API for real-time message relay
  */
 
-import { getApiUrl } from './apiConfig';
+import { getApiUrl } from "./apiConfig";
 
 class TranscriptionRelay {
   constructor() {
@@ -57,7 +57,7 @@ class TranscriptionRelay {
     try {
       const url = getApiUrl(`/transcription/${this.roomId}`);
       console.log(`📤 Sending to: ${url}`, message);
-      
+
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -100,11 +100,11 @@ class TranscriptionRelay {
       return await response.json();
     } catch (error) {
       console.error("❌ Error sending transcription:", error);
-      
+
       if (error.message && error.message.includes("fetch")) {
         throw new Error(`Cannot connect to backend.`);
       }
-      
+
       throw error;
     }
   }
@@ -125,7 +125,9 @@ class TranscriptionRelay {
     this.pollingInterval = setInterval(async () => {
       try {
         const response = await fetch(
-          getApiUrl(`/transcription/${this.roomId}?since=${this.lastMessageId}`),
+          getApiUrl(
+            `/transcription/${this.roomId}?since=${this.lastMessageId}`
+          ),
           {
             method: "GET",
           }

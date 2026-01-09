@@ -30,8 +30,8 @@ const CommunicationLobby = () => {
       setIsCreating(true);
       setError("");
 
-      const { getApiUrl } = await import('../utils/apiConfig');
-      const response = await fetch(getApiUrl('/room'), {
+      const { getApiUrl } = await import("../utils/apiConfig");
+      const response = await fetch(getApiUrl("/room"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ roomId: roomId.trim() }),
