@@ -12,35 +12,29 @@
 
 export default async function handler(req, res) {
   // Handle OPTIONS preflight immediately
-  if (request.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    });
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    return res.status(200).end();
   }
 
   // Get the backend URL from environment variable (default to Azure VM)
   const BACKEND_URL = process.env.BACKEND_URL || 'http://51.124.124.18';
   
   // Extract the path from the catch-all route
-  // In Vercel, for [...path].js, the path segments are in context.params.path (array)
-  // Or we can extract from the URL
-  const url = new URL(request.url);
-  
-  // Try to get path from context.params first (Vercel's way)
+  // In Vercel, for [...path].js, the path segments are in req.query.path (array)
+  // Example: /api/backend/room/ABC123 -> req.query.path = ['room', 'ABC123']
   let backendPath = '';
-  if (context && context.params && context.params.path) {
-    // context.params.path is an array: ['room'] or ['room', 'ABC123']
-    backendPath = Array.isArray(context.params.path) 
-      ? context.params.path.join('/')
-      : context.params.path;
+  
+  if (req.query.path) {
+    // req.query.path is an array: ['room'] or ['room', 'ABC123']
+    backendPath = Array.isArray(req.query.path) 
+      ? req.query.path.join('/')
+      : req.query.path;
   } else {
-    // Fallback: extract from URL pathname
-    const pathMatch = url.pathname.match(/^\/api\/backend\/(.*)$/);
+    // Fallback: extract from URL
+    const pathMatch = req.url.match(/^\/api\/backend\/(.*?)(\?|$)/);
     if (pathMatch && pathMatch[1]) {
       backendPath = pathMatch[1];
     }
@@ -54,47 +48,50 @@ export default async function handler(req, res) {
     backendUrl = `${BACKEND_URL}/${backendPath}`;
   }
   
-  // Preserve query parameters from the original request
-  const queryString = url.search;
+  // Preserve query parameters from the original request (except 'path')
+  const queryParams = new URLSearchParams();
+  Object.keys(req.query || {}).forEach(key => {
+    if (key !== 'path') {
+      const value = req.query[key];
+      if (Array.isArray(value)) {
+        value.forEach(v => queryParams.append(key, v));
+      } else {
+        queryParams.append(key, value);
+      }
+    }
+  });
+  const queryString = queryParams.toString();
   const fullBackendUrl = queryString 
-    ? `${backendUrl}${queryString}`
+    ? `${backendUrl}?${queryString}`
     : backendUrl;
   
-  console.log(`[Proxy] ${request.method} ${url.pathname} -> ${fullBackendUrl}`);
+  console.log(`[Proxy] ${req.method} ${req.url} -> ${fullBackendUrl}`);
   
   try {
     // Prepare headers for the backend request
-    const headers = new Headers();
+    const headers = { ...req.headers };
     
-    // Copy relevant headers from the original request
-    request.headers.forEach((value, key) => {
-      // Skip headers that shouldn't be forwarded
-      const skipHeaders = ['host', 'connection', 'content-length', 'cf-ray', 'cf-connecting-ip'];
-      if (!skipHeaders.includes(key.toLowerCase())) {
-        headers.set(key, value);
-      }
-    });
+    // Remove headers that shouldn't be forwarded
+    delete headers.host;
+    delete headers.connection;
+    delete headers['content-length'];
+    delete headers['cf-ray'];
+    delete headers['cf-connecting-ip'];
+    delete headers['x-forwarded-for'];
+    delete headers['x-vercel-id'];
     
     // Get request body if present
     let body = null;
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
-      try {
-        const contentType = request.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-          // For JSON, get the text and keep it as string (don't parse)
-          body = await request.text();
-        } else {
-          body = await request.text();
-        }
-      } catch (e) {
-        console.warn('[Proxy] Could not read request body:', e.message);
-        // No body or already consumed - continue without body
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      // For POST/PUT/PATCH, send the body
+      if (req.body) {
+        body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
       }
     }
     
     // Forward the request to the backend
     const response = await fetch(fullBackendUrl, {
-      method: request.method,
+      method: req.method,
       headers: headers,
       body: body,
     });
@@ -109,51 +106,32 @@ export default async function handler(req, res) {
       responseData = await response.text();
     }
     
-    // Prepare response headers
-    const responseHeaders = new Headers();
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     
     // Copy relevant headers from backend response
     response.headers.forEach((value, key) => {
       // Don't forward headers that should be set by Vercel
       const skipHeaders = ['content-encoding', 'transfer-encoding', 'connection', 'content-length'];
       if (!skipHeaders.includes(key.toLowerCase())) {
-        responseHeaders.set(key, value);
+        res.setHeader(key, value);
       }
     });
     
-    // Set CORS headers
-    responseHeaders.set('Access-Control-Allow-Origin', '*');
-    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
     // Return the response
-    return new Response(
-      typeof responseData === 'string' ? responseData : JSON.stringify(responseData),
-      {
-        status: response.status,
-        headers: responseHeaders,
-      }
-    );
+    res.status(response.status).json(responseData);
     
   } catch (error) {
     console.error(`[Proxy Error] ${error.message}`);
-    console.error(`[Proxy Error] Failed to proxy ${request.method} ${url.pathname} to ${fullBackendUrl}`);
+    console.error(`[Proxy Error] Failed to proxy ${req.method} ${req.url} to ${fullBackendUrl}`);
     
     // Return a proper error response
-    return new Response(
-      JSON.stringify({
-        error: 'Bad Gateway',
-        message: `Failed to connect to backend: ${error.message}`,
-        backendUrl: fullBackendUrl,
-      }),
-      {
-        status: 502,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-        },
-      }
-    );
+    res.status(502).json({
+      error: 'Bad Gateway',
+      message: `Failed to connect to backend: ${error.message}`,
+      backendUrl: fullBackendUrl,
+    });
   }
 }
-
