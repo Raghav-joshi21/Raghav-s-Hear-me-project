@@ -12,22 +12,22 @@
  */
 export const getApiBaseUrl = () => {
   // CRITICAL: Check hostname FIRST (before any env vars) to detect Vercel
-  // This ensures we ALWAYS use /api proxy on Vercel, even if VITE_BACKEND_URL is set
+  // This ensures we ALWAYS use /api/backend proxy on Vercel, even if VITE_BACKEND_URL is set
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     const isVercel = hostname.includes('vercel.app') || hostname.includes('vercel.com');
     const isHTTPS = window.location.protocol === 'https:';
     
     if (isVercel || isHTTPS) {
-      console.log('🔒 Vercel/HTTPS detected, using /api proxy (ignoring VITE_BACKEND_URL)');
-      return '/api';
+      console.log('🔒 Vercel/HTTPS detected, using /api/backend serverless proxy');
+      return '/api/backend';
     }
   }
   
-  // In production build (but not HTTPS - local testing), use /api if PROD is true
+  // In production build (but not HTTPS - local testing), use /api/backend if PROD is true
   if (import.meta.env.PROD) {
-    console.log('📦 Production build detected, using /api');
-    return '/api';
+    console.log('📦 Production build detected, using /api/backend');
+    return '/api/backend';
   }
   
   // In development (HTTP localhost), use environment variable or localhost
@@ -35,8 +35,8 @@ export const getApiBaseUrl = () => {
   if (envUrl) {
     // NEVER use HTTP URLs that would cause mixed content errors
     if (envUrl.startsWith('http://') && !envUrl.includes('localhost')) {
-      console.warn('⚠️ VITE_BACKEND_URL is HTTP (not localhost), ignoring to prevent mixed content. Using /api instead.');
-      return '/api';
+      console.warn('⚠️ VITE_BACKEND_URL is HTTP (not localhost), ignoring to prevent mixed content. Using /api/backend instead.');
+      return '/api/backend';
     }
     console.log('🔧 Using VITE_BACKEND_URL:', envUrl);
     return envUrl;
