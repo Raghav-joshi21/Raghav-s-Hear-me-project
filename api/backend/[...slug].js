@@ -12,6 +12,7 @@ export default async function handler(req, res) {
   // Log that the proxy function was called
   console.log("[Proxy] Function invoked - URL:", req.url, "Method:", req.method);
   console.log("[Proxy] Query params:", JSON.stringify(req.query));
+  console.log("[Proxy] Headers:", JSON.stringify(req.headers));
   
   // Handle OPTIONS preflight immediately
   if (req.method === "OPTIONS") {
