@@ -11,18 +11,15 @@
  * @returns {string} Base URL for backend API
  */
 export const getApiBaseUrl = () => {
-  // CRITICAL: If running on HTTPS (Vercel), ALWAYS use /api proxy
-  // This prevents mixed content errors (HTTPS page requesting HTTP resources)
-  // IGNORE VITE_BACKEND_URL when on HTTPS - it causes mixed content errors
-  
-  // Check multiple ways to detect HTTPS/Vercel
+  // CRITICAL: Check hostname FIRST (before any env vars) to detect Vercel
+  // This ensures we ALWAYS use /api proxy on Vercel, even if VITE_BACKEND_URL is set
   if (typeof window !== 'undefined') {
-    const isHTTPS = window.location.protocol === 'https:' ||
-                    window.location.hostname.includes('vercel.app') ||
-                    window.location.hostname.includes('vercel.com');
+    const hostname = window.location.hostname;
+    const isVercel = hostname.includes('vercel.app') || hostname.includes('vercel.com');
+    const isHTTPS = window.location.protocol === 'https:';
     
-    if (isHTTPS) {
-      console.log('🔒 HTTPS/Vercel detected, using /api proxy (ignoring VITE_BACKEND_URL)');
+    if (isVercel || isHTTPS) {
+      console.log('🔒 Vercel/HTTPS detected, using /api proxy (ignoring VITE_BACKEND_URL)');
       return '/api';
     }
   }
