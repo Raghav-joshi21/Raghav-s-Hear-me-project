@@ -11,6 +11,9 @@
  */
 
 export default async function handler(req, res) {
+  // Log that the proxy function was called
+  console.log("[Proxy] Function invoked - URL:", req.url, "Method:", req.method);
+  
   // Handle OPTIONS preflight immediately
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
