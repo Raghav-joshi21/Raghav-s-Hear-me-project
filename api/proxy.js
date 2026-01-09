@@ -30,11 +30,22 @@ export default async function handler(req, res) {
 
   // Extract the path from query parameter (passed by vercel.json rewrite)
   // Example: /api/backend/room -> rewrite -> /api/proxy?path=room
+  // Example: /api/backend/room/ABC123 -> rewrite -> /api/proxy?path=room/ABC123
   let backendPath = req.query.path || "";
 
   // If path is an array, join it
   if (Array.isArray(backendPath)) {
     backendPath = backendPath.join("/");
+  }
+
+  // Fallback: If path is not in query, try to extract from URL
+  // This handles cases where the rewrite might not work correctly
+  if (!backendPath && req.url) {
+    const urlMatch = req.url.match(/\/api\/backend\/(.+?)(\?|$)/);
+    if (urlMatch && urlMatch[1]) {
+      backendPath = urlMatch[1];
+      console.log("[Proxy Debug] Extracted path from URL:", backendPath);
+    }
   }
 
   console.log("[Proxy Debug] req.url:", req.url);
