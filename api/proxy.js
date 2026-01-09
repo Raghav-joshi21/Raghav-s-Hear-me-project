@@ -132,11 +132,33 @@ export default async function handler(req, res) {
     // Get the response body
     const contentType = response.headers.get("content-type") || "";
     let responseData;
+    let responseText = "";
 
-    if (contentType.includes("application/json")) {
-      responseData = await response.json();
+    // Always get text first to check if it's HTML
+    responseText = await response.text();
+    
+    // Check if response is HTML (error page)
+    if (responseText.trim().startsWith("<!DOCTYPE") || responseText.trim().startsWith("<html")) {
+      console.error("[Proxy Error] Backend returned HTML instead of JSON");
+      console.error("[Proxy Error] Response preview:", responseText.substring(0, 500));
+      return res.status(502).json({
+        error: "Bad Gateway",
+        message: "Backend returned HTML error page instead of JSON. The backend may be down or the endpoint doesn't exist.",
+        backendUrl: fullBackendUrl,
+        statusCode: response.status,
+      });
+    }
+
+    // Parse as JSON if content-type suggests JSON, or if text looks like JSON
+    if (contentType.includes("application/json") || (responseText.trim().startsWith("{") || responseText.trim().startsWith("["))) {
+      try {
+        responseData = JSON.parse(responseText);
+      } catch (e) {
+        console.warn("[Proxy] Failed to parse as JSON, returning as text:", e.message);
+        responseData = responseText;
+      }
     } else {
-      responseData = await response.text();
+      responseData = responseText;
     }
 
     // Set CORS headers
