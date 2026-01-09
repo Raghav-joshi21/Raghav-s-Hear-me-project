@@ -108,6 +108,9 @@ export async function initializeAzureSDK() {
     // At this point, if callClient exists, callAgent must also exist (or we just created a fresh callClient)
     if (!callAgent) {
       // Fetch token from backend
+      // Backend endpoint is /api/azure/token
+      // getApiUrl will create: /api/backend/api/azure/token
+      // Proxy will forward to: http://51.124.124.18/api/azure/token
       const { getApiUrl } = await import('./apiConfig');
       const tokenResponse = await fetch(getApiUrl('/api/azure/token'), {
         method: "POST",

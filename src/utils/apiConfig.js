@@ -48,13 +48,22 @@ export const getApiBaseUrl = () => {
 
 /**
  * Get full API URL for an endpoint
- * @param {string} endpoint - API endpoint (e.g., '/room', '/predict')
+ * @param {string} endpoint - API endpoint (e.g., '/room', '/predict', '/api/azure/token')
  * @returns {string} Full URL
  */
 export const getApiUrl = (endpoint) => {
   const baseUrl = getApiBaseUrl();
-  // Remove leading slash from endpoint if present to avoid double slashes
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  
+  // Remove leading slash from endpoint if present
+  let cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  
+  // If endpoint already starts with 'api/', remove it since baseUrl already includes '/api/backend'
+  // This handles cases like '/api/azure/token' -> 'api/azure/token' -> 'azure/token'
+  // So final URL: /api/backend/azure/token -> proxies to -> http://51.124.124.18/azure/token
+  // But wait, backend has /api/azure/token, so we need to keep the 'api/' part
+  // Actually, let's keep it as-is and let the proxy handle it
+  // The proxy will forward: /api/backend/api/azure/token -> http://51.124.124.18/api/azure/token
+  
   return `${baseUrl}/${cleanEndpoint}`;
 };
 
